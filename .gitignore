@@ -1,6 +1,9 @@
 # Debug Config
-.vscode/launch.json
-.vscode/settings.json
+/.vscode/launch.json
+/.vscode/settings.json
+
+# Node
+/node_modules
 
 # Compiled Lua sources
 luac.out
