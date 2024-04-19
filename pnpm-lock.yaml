@@ -1,0 +1,18 @@
+lockfileVersion: '6.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+devDependencies:
+  factoriomod-debug:
+    specifier: ^1.1.42
+    version: 1.1.42
+
+packages:
+
+  /factoriomod-debug@1.1.42:
+    resolution: {integrity: sha512-RRFNXj/91cKp2IH5BTr0vmNYDV3R4G4bmb/Pov1S8ReakB2mI1VlSNvpMp42youd3oNrVQ00+zwgX0T5ryr8TA==}
+    engines: {node: '>=18', vscode: ^1.85.0}
+    hasBin: true
+    dev: true

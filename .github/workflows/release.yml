@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build_and_release:
+  Build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Git
@@ -13,22 +13,33 @@ jobs:
       - name: Luacheck        
         uses: lunarmodules/luacheck@v1.1.2
 
-      # Build your Lua package (replace with your build steps)
-      - name: Build Lua package
-        run: 
-
-      # Create a release tag version (replace with your versioning logic)
-          git tag v1.0.0
-
-      - name: Push tag
-        run: git push origin v1.0.0
-
-      # Create a release on GitHub
-      - name: Create GitHub Release
-        uses: nlopes/release-action@v3.1.2
+      - name: Setup Node.js environment      
+        uses: actions/setup-node@v4.0.2
+    
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3.0.0
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Lua Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-          file_glob: path/to/your/lua/package/*.lua  # Replace with your package location
+          version: latest
+
+      - name: Install Node Packages
+        run: pnpm i
+
+  Release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Git
+        uses: actions/checkout@v3
+      
+      - name: Luacheck        
+        uses: lunarmodules/luacheck@v1.1.2
+
+      - name: Setup Node.js environment      
+        uses: actions/setup-node@v4.0.2
+    
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3.0.0
+        with:
+          version: latest
+
+      - name: Install Node Packages
+        run: pnpm i
