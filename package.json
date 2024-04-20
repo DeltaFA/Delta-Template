@@ -1,9 +1,11 @@
 {
-  "name": "your-project-name",
-  "version": "0.0.0",
+  "name": "delta",
+  "version": "0.1.0",
   "scripts": {
     "build": "tsx build.ts",
-    "dev": "tsx build.ts --dev --skip-version",
+    "dev": "tsx build.ts --folder --to-factorio --skip-version",
+    "dev-build": "tsx build.ts --to-factorio --skip-version",
+    "dev-link": "tsx build.ts --link --to-factorio --skip-version",
     "release": "tsx build.ts --release"
   },
   "devDependencies": {
