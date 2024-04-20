@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, mkdirSync, createWriteStream, existsSync, unlinkSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, createWriteStream, existsSync, unlinkSync, symlinkSync, rmSync, cpSync, statSync } from 'fs';
 import semver from 'semver'
 import chalk from 'chalk'
 import prompts from 'prompts'
@@ -8,13 +8,17 @@ import { execSync } from 'child_process';
 
 // Flags
 const verCheck = process.argv.includes('--skip-version')? false : true;
-const dev = process.argv.includes('--dev')? true : false;
+const toFactorio = process.argv.includes('--to-factorio')? true : false;
+const folder = process.argv.includes('--folder')? true : false;
 const release = process.argv.includes('--release')? true : false;
+const link = process.argv.includes('--link')? true : false;
+const deleteMod = process.argv.includes('--delete')? true : false;
+
 // Define file paths
 const packagePath = "package.json";
 const infoPath = "./src/info.json";
-const archivePath = dev ? path.join(`${process.env.APPDATA}`, '/Factorio/mods') : "./dist";
-console.log(archivePath);
+const archivePath = toFactorio ? path.join(`${process.env.APPDATA}`, '/Factorio/mods') : "./dist";
+console.log(`Exporting to: ${archivePath} as ${folder ? "folder" : "zip file"}.`);
 // Function for handling cancellation
 function onCancel(): void {
   console.log(chalk.red("Aborting"));
@@ -233,26 +237,40 @@ try {
     runCommand("git push --tags");
   }
   else {
-    const zipName = `${name}_${version}`;
-    const nextZipName = `${name}_${nextVersion}`;
+    const modName = `${name}_${version}`;
+    const nextModName = `${name}_${nextVersion}`;
     if (!existsSync("./dist")) mkdirSync("./dist");
-    if (existsSync(`${archivePath}/${zipName}.zip`)) unlinkSync(`${archivePath}/${zipName}.zip`)
-    if (existsSync(`${archivePath}/${nextZipName}.zip`)) unlinkSync(`${archivePath}/${nextZipName}.zip`)
-    console.log(`Archiving ${nextZipName}.zip...`);
-    const output = createWriteStream(`${archivePath}/${nextZipName}.zip`);
-    const archive = archiver('zip', { zlib: { level: 9 } });
-    
-    archive.on('error', (err) => {
-        throw err;
-    });
-    
-    output.on('close', () => {
-      console.log(`${archive.pointer()} total bytes archived.`);
-    });
-    
-    archive.pipe(output);
-    archive.directory(`./src`, `${nextZipName}`);
-    archive.finalize();
+    if (existsSync(`${archivePath}/${modName}.zip`)) unlinkSync(`${archivePath}/${modName}.zip`);
+    if (existsSync(`${archivePath}/${nextModName}.zip`)) unlinkSync(`${archivePath}/${nextModName}.zip`);
+    if (existsSync(`${archivePath}/${modName}`) && statSync(`${archivePath}/${modName}`).isSymbolicLink()) unlinkSync(`${archivePath}/${modName}`);
+    if (existsSync(`${archivePath}/${nextModName}`) && statSync(`${archivePath}/${modName}`).isSymbolicLink()) unlinkSync(`${archivePath}/${nextModName}`);
+    if (existsSync(`${archivePath}/${modName}`)) rmSync(`${archivePath}/${modName}`, { recursive: true, force: true });
+    if (existsSync(`${archivePath}/${nextModName}`)) rmSync(`${archivePath}/${nextModName}`, { recursive: true, force: true });
+    if (folder) {
+      console.log(`Copying the ${nextModName} folder...`);
+      cpSync(`./src`, `${archivePath}/${nextModName}`, {recursive: true})
+    }
+    else if (link){
+      console.log(`Linking the ${nextModName} folder...`);
+      symlinkSync(path.resolve(__dirname, `./src`), `${archivePath}/${nextModName}`, 'dir')
+    }
+    else if (!deleteMod){
+      console.log(`Archiving ${nextModName}.zip...`);
+      const output = createWriteStream(`${archivePath}/${nextModName}.zip`);
+      const archive = archiver('zip', { zlib: { level: 9 } });
+      
+      archive.on('error', (err) => {
+          throw err;
+      });
+      
+      output.on('close', () => {
+        console.log(`${archive.pointer()} total bytes archived.`);
+      });
+      
+      archive.pipe(output);
+      archive.directory(`./src`, `${nextModName}`);
+      archive.finalize();
+    }
   }
 })();
 
