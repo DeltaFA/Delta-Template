@@ -4,7 +4,7 @@
   "scripts": {
     "build": "tsx build.ts",
     "dev": "tsx build.ts --dev --skip-version",
-	"release": "tsx build.ts --release"
+    "release": "tsx build.ts --release"
   },
   "devDependencies": {
     "@pnpm/types": "^10.0.0",
