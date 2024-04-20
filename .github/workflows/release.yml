@@ -1,7 +1,9 @@
 name: Release
 
 on:
-  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
 
 jobs:
   Release:
@@ -23,4 +25,12 @@ jobs:
 
       - name: Install Node Packages
         run: pnpm i
-        
+      
+      - name: Build
+        run: pnpm build --skip-version
+      
+      - name: Create Release
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          artifacts: "dist/*"
+          makeLatest: true
