@@ -4,11 +4,12 @@ import chalk from 'chalk'
 import prompts from 'prompts'
 import archiver from 'archiver'
 import path from 'path';
+import { execSync } from 'child_process';
 
 // Flags
 const verCheck = process.argv.includes('--skip-version')? false : true;
 const dev = process.argv.includes('--dev')? true : false;
-
+const release = process.argv.includes('--release')? true : false;
 // Define file paths
 const manifestPath = "manifest.json";
 const packagePath = "package.json";
@@ -20,7 +21,19 @@ function onCancel(): void {
   console.log(chalk.red("Aborting"));
   process.exit(128); // SIGINT
 }
-
+function runCommand(command: string, exit = true): string {
+  try {
+    const result = execSync(command, {
+      encoding: "utf8",
+      cwd: process.cwd(),
+    });
+    return result;
+  } catch (error) {
+    if (!exit) return error.stdout;
+    console.error(error.message);
+    process.exit(1);
+  }
+}
 // Function to load JSON files with error handling
 function loadJson(name: string, path: string): any {
   try {
@@ -178,24 +191,85 @@ try {
   writeFileSync(packagePath, `${JSON.stringify(Package, null, 2)}\n`);
   writeFileSync(infoPath, `${JSON.stringify(info, null, 2)}\n`);
 
-  const zipName = `${name}_${version}`;
-  const nextZipName = `${name}_${nextVersion}`;
-  if (!existsSync("./dist")) mkdirSync("./dist");
-  if (existsSync(`${archivePath}/${zipName}.zip`)) unlinkSync(`${archivePath}/${zipName}.zip`)
-  if (existsSync(`${archivePath}/${nextZipName}.zip`)) unlinkSync(`${archivePath}/${nextZipName}.zip`)
-  console.log(`Archiving ${nextZipName}.zip...`);
-  const output = createWriteStream(`${archivePath}/${nextZipName}.zip`);
-  const archive = archiver('zip', { zlib: { level: 9 } });
-  
-  archive.on('error', (err) => {
-      throw err;
-  });
-  
-  output.on('close', () => {
-    console.log(`${archive.pointer()} total bytes archived.`);
-  });
-  
-  archive.pipe(output);
-  archive.directory(`./src`, `${nextZipName}`);
-  archive.finalize();
+  if (release) {
+    runCommand("git add manifest.json package.json ./src/info.json");
+    const { message } = await prompts(
+      {
+        type: "text",
+        name: "message",
+        message: "Commit message",
+        initial: `Release v${manifest.version}`,
+        validate: (value) => {
+          if (!value.trim()) return "Commit message is required";
+          return true;
+        },
+      },
+      { onCancel },
+    );
+
+    const existingTags = runCommand("git tag --list").split("\n").filter(Boolean);
+    const { tagName } = await prompts(
+      {
+        type: "text",
+        name: "tagName",
+        message: "Tag name",
+        initial: `v${manifest.version}`,
+        validate: (value) => {
+          if (!value.trim()) return "Tag name is required";
+          if (existingTags.includes(value)) return `Tag ${value} already exists`;
+          return true;
+        },
+      },
+      { onCancel },
+    );
+    const hasSigningKey = Boolean(runCommand("git config --get user.signingkey", false).trim());
+    const commitSigningEnabled =
+    runCommand("git config --get commit.gpgsign", false).trim() === "true";
+    const tagSigningEnabled = runCommand("git config --get tag.gpgsign", false).trim() === "true";
+    let sign = false;
+    if (hasSigningKey && (!commitSigningEnabled || !tagSigningEnabled)) {
+      ({ sign } = await prompts({
+        type: "confirm",
+        name: "sign",
+        message: "Sign commit and tag?",
+        initial: true,
+      }));
+    }
+    // Commit changes
+    runCommand(`git commit${sign ? " -S" : ""} -m "${message}"`);
+    // Tag commit
+    runCommand(`git tag${sign ? " -s" : ""} -a -m "${message}" "${tagName}"`);
+    // Push changes
+    await confirmOrExit("Push changes to remote?", true);
+    runCommand("git push");
+    // And the tag
+    runCommand("git push --tags");
+  }
+  else {
+    const zipName = `${name}_${version}`;
+    const nextZipName = `${name}_${nextVersion}`;
+    if (!existsSync("./dist")) mkdirSync("./dist");
+    if (existsSync(`${archivePath}/${zipName}.zip`)) unlinkSync(`${archivePath}/${zipName}.zip`)
+    if (existsSync(`${archivePath}/${nextZipName}.zip`)) unlinkSync(`${archivePath}/${nextZipName}.zip`)
+    console.log(`Archiving ${nextZipName}.zip...`);
+    const output = createWriteStream(`${archivePath}/${nextZipName}.zip`);
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    
+    archive.on('error', (err) => {
+        throw err;
+    });
+    
+    output.on('close', () => {
+      console.log(`${archive.pointer()} total bytes archived.`);
+    });
+    
+    archive.pipe(output);
+    archive.directory(`./src`, `${nextZipName}`);
+    archive.finalize();
+    if (dev) {
+      readFileSync(`${archivePath}/`)
+    }
+  }
 })();
+
+
