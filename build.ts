@@ -166,14 +166,13 @@ try {
   if (verCheck) {
     manifest.version = nextVersion;
     Package.version = nextVersion;
-    info.version = nextVersion;
-
   }
   // Name check
   const { name } = manifest;
   Package.name = name;
-  info.name = name;
-  
+  // Manifest => Info
+  info = manifest;
+
   // Update Jsons
   writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
   writeFileSync(packagePath, `${JSON.stringify(Package, null, 2)}\n`);
