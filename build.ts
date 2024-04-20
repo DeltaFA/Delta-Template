@@ -11,7 +11,6 @@ const verCheck = process.argv.includes('--skip-version')? false : true;
 const dev = process.argv.includes('--dev')? true : false;
 const release = process.argv.includes('--release')? true : false;
 // Define file paths
-const manifestPath = "manifest.json";
 const packagePath = "package.json";
 const infoPath = "./src/info.json";
 const archivePath = dev ? path.join(`${process.env.APPDATA}`, '/Factorio/mods') : "./dist";
@@ -68,29 +67,20 @@ async function confirmOrExit(message: string, initial = true): Promise<void> {
   }
 }
 
-// Load manifest and package JSON files
-let manifest;
+// Load info and package JSON files
+let info;
 let Package;
 try {
-  manifest = loadJson("manifest", manifestPath);
+  info = loadJson("info", infoPath);
   Package = loadJson("package", packagePath);
 } catch (error) {
   // Handle potential errors during JSON loading here
-  console.error(chalk.red("Error loading manifest or package JSON:", error.message));
+  console.error(chalk.red("Error loading info or package JSON:", error.message));
   process.exit(1);
 }
 
-let info;
-try {
-  info = loadJson("info", infoPath); // bruh
-} catch (error) {
-  console.warn(chalk.yellow("Error loading info.json:", error.message));
-  info = {};
-}
-
-
 (async () => {
-  const { version } = manifest;
+  const { version } = info;
   let nextVersion;
   const isValidSemver = Boolean(semver.valid(version));
   if (!isValidSemver) {
@@ -177,28 +167,25 @@ try {
     }}
   // Version check
   if (verCheck) {
-    manifest.version = nextVersion;
+    info.version = nextVersion;
     Package.version = nextVersion;
   }
   // Name check
-  const { name } = manifest;
+  const { name } = info;
   Package.name = name;
-  // Manifest => Info
-  info = manifest;
 
   // Update Jsons
-  writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
   writeFileSync(packagePath, `${JSON.stringify(Package, null, 2)}\n`);
   writeFileSync(infoPath, `${JSON.stringify(info, null, 2)}\n`);
 
   if (release) {
-    runCommand("git add manifest.json package.json ./src/info.json");
+    runCommand("git add ./src/info.json package.json ");
     const { message } = await prompts(
       {
         type: "text",
         name: "message",
         message: "Commit message",
-        initial: `Release v${manifest.version}`,
+        initial: `Release v${info.version}`,
         validate: (value) => {
           if (!value.trim()) return "Commit message is required";
           return true;
@@ -213,7 +200,7 @@ try {
         type: "text",
         name: "tagName",
         message: "Tag name",
-        initial: `v${manifest.version}`,
+        initial: `v${info.version}`,
         validate: (value) => {
           if (!value.trim()) return "Tag name is required";
           if (existingTags.includes(value)) return `Tag ${value} already exists`;
