@@ -3,6 +3,7 @@ import semver from 'semver'
 import chalk from 'chalk'
 import prompts from 'prompts'
 import archiver from 'archiver'
+import path from 'path';
 
 // Flags
 const verCheck = process.argv.includes('--skip-version')? false : true;
@@ -12,10 +13,8 @@ const dev = process.argv.includes('--dev')? true : false;
 const manifestPath = "manifest.json";
 const packagePath = "package.json";
 const infoPath = "./src/info.json";
-const archivePath = dev ? "%appdata%/Factorio/mods" : "./dist";
-console.log(dev);
+const archivePath = dev ? path.join(`${process.env.APPDATA}`, '/Factorio/mods') : "./dist";
 console.log(archivePath);
-
 // Function for handling cancellation
 function onCancel(): void {
   console.log(chalk.red("Aborting"));
@@ -186,7 +185,7 @@ try {
   if (existsSync(`${archivePath}/${zipName}.zip`)) unlinkSync(`${archivePath}/${zipName}.zip`)
   if (existsSync(`${archivePath}/${nextZipName}.zip`)) unlinkSync(`${archivePath}/${nextZipName}.zip`)
   console.log(`Archiving ${nextZipName}.zip...`);
-  const output = createWriteStream(`${archivePath}${nextZipName}.zip`);
+  const output = createWriteStream(`${archivePath}/${nextZipName}.zip`);
   const archive = archiver('zip', { zlib: { level: 9 } });
   
   archive.on('error', (err) => {

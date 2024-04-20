@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "build": "tsx build.ts",
-    "debug": "tsx buuld.ts --debug --skip-version"
+    "dev": "tsx build.ts --dev --skip-version"
   },
   "devDependencies": {
     "@pnpm/types": "^10.0.0",
