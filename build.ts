@@ -253,9 +253,6 @@ try {
     archive.pipe(output);
     archive.directory(`./src`, `${nextZipName}`);
     archive.finalize();
-    if (dev) {
-      readFileSync(`${archivePath}/`)
-    }
   }
 })();
 
