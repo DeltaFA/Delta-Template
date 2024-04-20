@@ -1,5 +1,20 @@
 {
-	"devDependencies": {
-		"factoriomod-debug": "^1.1.42"
-	}
+  "name": "your-project-name",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "tsx build.ts"
+  },
+  "devDependencies": {
+    "@pnpm/types": "^10.0.0",
+    "@prettier/plugin-lua": "^0.0.3",
+    "@types/node": "^20.12.7",
+    "archiver": "^7.0.1",
+    "factoriomod-debug": "^1.1.42",
+    "tsx": "^4.7.2"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "prompts": "^2.4.2",
+    "semver": "^7.6.0"
+  }
 }

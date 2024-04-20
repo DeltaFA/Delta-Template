@@ -1,6 +1,6 @@
 {
   "name": "NAME",
-  "version": "VERSTION [0.0.0]",
+  "version": "1.0.0",
   "factorio_version": "1.1",
   "title": "TITLE",
   "author": "AUTHORS",
@@ -9,5 +9,5 @@
   "description": "",
   "dependencies": [
     "base >= 1.1.107"
-]
+  ]
 }
