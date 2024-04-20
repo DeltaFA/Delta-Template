@@ -5,6 +5,9 @@
 # Node
 /node_modules
 
+# dist
+/dist
+
 # Compiled Lua sources
 luac.out
 
