@@ -6,8 +6,12 @@ on:
       - "v*"
 
 jobs:
-  Release:
+  release:
+    name: Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
     steps:
       - name: Checkout Git
         uses: actions/checkout@v3
