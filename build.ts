@@ -33,7 +33,7 @@ function loadJson(name: string, path: string): any {
 }
 
 // Function for confirmation prompt with error handling
-async function confirmOrExit(message: string, initial = false): Promise<void> {
+async function confirmOrExit(message: string, initial = true): Promise<void> {
   try {
     const { doContinue } = await prompts(
       {
