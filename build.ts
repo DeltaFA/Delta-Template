@@ -5,14 +5,16 @@ import prompts from 'prompts'
 import archiver from 'archiver'
 
 // Flags
-const verCheck = process.argv.indexOf('--skip-version')? false : true;
-const debug = process.argv.indexOf('--debug')? true : false;
+const verCheck = process.argv.includes('--skip-version')? false : true;
+const dev = process.argv.includes('--dev')? true : false;
 
 // Define file paths
 const manifestPath = "manifest.json";
 const packagePath = "package.json";
 const infoPath = "./src/info.json";
-const archivePath = debug ? "%appdata%/Factorio/mods" : "./dist";
+const archivePath = dev ? "%appdata%/Factorio/mods" : "./dist";
+console.log(dev);
+console.log(archivePath);
 
 // Function for handling cancellation
 function onCancel(): void {

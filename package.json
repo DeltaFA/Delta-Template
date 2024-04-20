@@ -2,7 +2,8 @@
   "name": "your-project-name",
   "version": "1.0.0",
   "scripts": {
-    "build": "tsx build.ts"
+    "build": "tsx build.ts",
+    "debug": "tsx buuld.ts --debug --skip-version"
   },
   "devDependencies": {
     "@pnpm/types": "^10.0.0",
