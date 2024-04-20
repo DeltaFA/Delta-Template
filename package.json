@@ -1,6 +1,6 @@
 {
   "name": "your-project-name",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "scripts": {
     "build": "tsx build.ts",
     "dev": "tsx build.ts --dev --skip-version",
