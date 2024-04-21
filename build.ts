@@ -5,6 +5,8 @@ import prompts from 'prompts'
 import archiver from 'archiver'
 import path from 'path';
 import { execSync } from 'child_process';
+import opn from 'better-opn';
+
 
 // Flags
 const verCheck = process.argv.includes('--skip-version')? false : true;
@@ -12,13 +14,13 @@ const toFactorio = process.argv.includes('--to-factorio')? true : false;
 const folder = process.argv.includes('--folder')? true : false;
 const release = process.argv.includes('--release')? true : false;
 const link = process.argv.includes('--link')? true : false;
-const deleteMod = process.argv.includes('--delete')? true : false;
+const launch = process.argv.includes('--launch')? true : false;
 
 // Define file paths
 const packagePath = "package.json";
 const infoPath = "./src/info.json";
-const archivePath = toFactorio ? path.join(`${process.env.APPDATA}`, '/Factorio/mods') : "./dist";
-console.log(`Exporting to: ${archivePath} as ${folder ? "folder" : "zip file"}.`);
+const exportPath = toFactorio ? path.join(`${process.env.APPDATA}`, '/Factorio/mods') : "./dist";
+console.log(`Exporting to: ${exportPath} as ${folder ? "folder" : "zip file"}.`);
 // Function for handling cancellation
 function onCancel(): void {
   console.log(chalk.red("Aborting"));
@@ -49,7 +51,7 @@ function loadJson(name: string, path: string): any {
 }
 
 // Function for confirmation prompt with error handling
-async function confirmOrExit(message: string, initial = true): Promise<void> {
+async function confirmOrExit(message: string, initial = false): Promise<void> {
   try {
     const { doContinue } = await prompts(
       {
@@ -153,7 +155,7 @@ try {
   if (verCheck) {
     if (isNewValidSemver) {
       if (semver.lte(nextVersion, version)) {
-        await confirmOrExit(`Version ${nextVersion} is not greater than ${version}. Continue?`);
+        await confirmOrExit(`Version ${nextVersion} is not greater than ${version}. Continue?`, true);
       }
       const cleaned = semver.clean(nextVersion);
       if (cleaned !== nextVersion) {
@@ -168,9 +170,8 @@ try {
     } else {
       console.error(chalk.red(`Version ${nextVersion} is not a valid semver.`));
       process.exit(1);
-    }}
+    }
   // Version check
-  if (verCheck) {
     info.version = nextVersion;
     Package.version = nextVersion;
   }
@@ -239,24 +240,28 @@ try {
   else {
     const modName = `${name}_${version}`;
     const nextModName = `${name}_${nextVersion}`;
+    const modPath = `${exportPath}/${modName}`;
+    const nextModPath = `${exportPath}/${nextModName}`;
+    
     if (!existsSync("./dist")) mkdirSync("./dist");
-    if (existsSync(`${archivePath}/${modName}.zip`)) unlinkSync(`${archivePath}/${modName}.zip`);
-    if (existsSync(`${archivePath}/${nextModName}.zip`)) unlinkSync(`${archivePath}/${nextModName}.zip`);
-    if (existsSync(`${archivePath}/${modName}`) && statSync(`${archivePath}/${modName}`).isSymbolicLink()) unlinkSync(`${archivePath}/${modName}`);
-    if (existsSync(`${archivePath}/${nextModName}`) && statSync(`${archivePath}/${modName}`).isSymbolicLink()) unlinkSync(`${archivePath}/${nextModName}`);
-    if (existsSync(`${archivePath}/${modName}`)) rmSync(`${archivePath}/${modName}`, { recursive: true, force: true });
-    if (existsSync(`${archivePath}/${nextModName}`)) rmSync(`${archivePath}/${nextModName}`, { recursive: true, force: true });
+    if (existsSync(`${modPath}.zip`)) unlinkSync(`${modPath}.zip`);
+    if (existsSync(`${modPath}`) && statSync(`${modPath}`).isSymbolicLink()) unlinkSync(`${modPath}`);
+    if (existsSync(`${modPath}`)) rmSync(`${modPath}`, { recursive: true, force: true });
+    if (existsSync(`${nextModPath}.zip`)) unlinkSync(`${nextModPath}.zip`);
+    if (existsSync(`${nextModPath}`) && statSync(`${modPath}`).isSymbolicLink()) unlinkSync(`${nextModPath}`);
+    if (existsSync(`${nextModPath}`)) rmSync(`${nextModPath}`, { recursive: true, force: true });
+    
     if (folder) {
       console.log(`Copying the ${nextModName} folder...`);
-      cpSync(`./src`, `${archivePath}/${nextModName}`, {recursive: true})
+      cpSync(`./src`, `${nextModPath}`, {recursive: true})
     }
     else if (link){
       console.log(`Linking the ${nextModName} folder...`);
-      symlinkSync(path.resolve(__dirname, `./src`), `${archivePath}/${nextModName}`, 'dir')
+      symlinkSync(path.resolve(__dirname, `./src`), `${nextModPath}`, 'dir')
     }
-    else if (!deleteMod){
+    else{
       console.log(`Archiving ${nextModName}.zip...`);
-      const output = createWriteStream(`${archivePath}/${nextModName}.zip`);
+      const output = createWriteStream(`${nextModPath}.zip`);
       const archive = archiver('zip', { zlib: { level: 9 } });
       
       archive.on('error', (err) => {
@@ -270,6 +275,11 @@ try {
       archive.pipe(output);
       archive.directory(`./src`, `${nextModName}`);
       archive.finalize();
+    }
+
+    if(launch){
+      console.log(`Launching Factorio...`);
+      opn('steam://launch/427520')
     }
   }
 })();
