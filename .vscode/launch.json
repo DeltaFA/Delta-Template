@@ -7,14 +7,12 @@
         {
             "type": "factoriomod",
             "request": "launch",
-            "name": "Factorio Mod Debug",
-            "preLaunchTask": "build-mod"
+            "name": "Factorio Mod Debug"
         },
         {
             "type": "factoriomod",
             "request": "launch",
             "name": "Factorio Mod Debug (Settings & Data)",
-            "preLaunchTask": "build-mod",
             "hookSettings": true,
             "hookData": true
         },
@@ -22,6 +20,26 @@
             "type": "factoriomod",
             "request": "launch",
             "name": "Factorio Mod Debug (Profile)",
+            "hookMode": "profile"
+        },
+        {
+            "type": "factoriomod",
+            "request": "launch",
+            "name": "Factorio Mod Debug (With building)",
+            "preLaunchTask": "build-mod"
+        },
+        {
+            "type": "factoriomod",
+            "request": "launch",
+            "name": "Factorio Mod Debug (Settings & Data with building)",
+            "preLaunchTask": "build-mod",
+            "hookSettings": true,
+            "hookData": true
+        },
+        {
+            "type": "factoriomod",
+            "request": "launch",
+            "name": "Factorio Mod Debug (Profile with building)",
             "preLaunchTask": "build-mod",
             "hookMode": "profile"
         }
