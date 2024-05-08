@@ -31,7 +31,7 @@ jobs:
         run: pnpm i
       
       - name: Build
-        run: pnpm build --skip-version
+        run: pnpm build --skip-user-input
       
       - name: Create Release
         uses: ncipollo/release-action@v1.14.0

@@ -9,18 +9,18 @@ import opn from 'better-opn';
 
 
 // Flags
-const verCheck = process.argv.includes('--skip-version')? false : true;
-const toFactorio = process.argv.includes('--to-factorio')? true : false;
-const folder = process.argv.includes('--folder')? true : false;
 const release = process.argv.includes('--release')? true : false;
-const link = process.argv.includes('--link')? true : false;
-const launch = process.argv.includes('--launch')? true : false;
+const automated = process.argv.includes('--skip-user-input')? true : false;
+
+let toFactorio = process.argv.includes('--to-factorio')? true : false;
+let folder = process.argv.includes('--folder')? true : false;
+let link = process.argv.includes('--link')? true : false;
+let launch = process.argv.includes('--launch')? true : false;
+let verCheck = process.argv.includes('--skip-version')? false : true;
 
 // Define file paths
 const packagePath = "package.json";
 const infoPath = "./src/info.json";
-const exportPath = toFactorio ? path.join(`${process.env.APPDATA}`, '/Factorio/mods') : "./dist";
-console.log(`Exporting to: ${exportPath} as ${folder ? "folder" : "zip file"}.`);
 // Function for handling cancellation
 function onCancel(): void {
   console.log(chalk.red("Aborting"));
@@ -87,13 +87,68 @@ try {
 
 (async () => {
   const { version } = info;
+  let buildMethod;
   let nextVersion;
   const isValidSemver = Boolean(semver.valid(version));
   if (!isValidSemver) {
     console.error(chalk.red(`Version ${version} is not a valid semver.`));
     process.exit(1);
   }
-  if (verCheck) {
+
+  if ( !( automated || toFactorio ) ) {
+    ({ toFactorio } = await prompts(
+      {
+        type: "select",
+        name: "toFactorio",
+        message: "Destination folder",
+        choices: [
+          {
+            title: `Factorio mods folder`,
+            value: true,
+          },
+          {
+            title: `./dist`,
+            value: false,
+          }
+        ],
+      },
+      { onCancel },
+    ));
+  }
+
+  const exportPath = toFactorio ? path.join(`${process.env.APPDATA}`, '/Factorio/mods') : "./dist";
+  console.log(`Export path: ${exportPath}`);
+
+  if ( !( automated || folder || link ) ) {
+    ({ buildMethod } = await prompts(
+      {
+        type: "select",
+        name: "buildMethod",
+        message: "Build method",
+        choices: [
+          {
+            title: `Zip`,
+            value: `zip`,
+          },
+          {
+            title: `Folder`,
+            value: `folder`,
+          },
+          {
+            title: `Symlink [Requires admin]`,
+            value: `symlink`,
+          }
+        ],
+      },
+      { onCancel },
+    ));
+
+    folder = (buildMethod == `folder`) ? true : false;
+    link = (buildMethod == `symlink`) ? true : false;
+    verCheck = ( folder || link ) ? false : verCheck;
+  }
+
+  if (verCheck && !automated) {
     const nextPatch = semver.inc(version, "patch");
     const nextMinor = semver.inc(version, "minor");
     const nextMajor = semver.inc(version, "major");
@@ -133,6 +188,7 @@ try {
   {
     nextVersion = version;
   }
+
   if (!nextVersion) {
     ({ nextVersion } = await prompts(
       {
@@ -148,11 +204,33 @@ try {
       { onCancel },
     ));
   }
+
+  if ( toFactorio && !( automated || launch )) {
+    ({ launch } = await prompts(
+      {
+        type: "select",
+        name: "launch",
+        message: "Launch factorio",
+        choices: [
+          {
+            title: `Yes`,
+            value: true,
+          },
+          {
+            title: `No`,
+            value: false,
+          }
+        ],
+      },
+      { onCancel },
+    ));
+  }
+
   nextVersion = nextVersion.trim();
   const isNewValidSemver = Boolean(semver.valid(nextVersion));
   console.log(nextVersion);
   // Semver Check
-  if (verCheck) {
+  if (verCheck && !automated) {
     if (isNewValidSemver) {
       if (semver.lte(nextVersion, version)) {
         await confirmOrExit(`Version ${nextVersion} is not greater than ${version}. Continue?`, true);
@@ -178,7 +256,10 @@ try {
   // Name check
   const { name } = info;
   Package.name = name;
-
+  
+  
+  
+  
   // Update Jsons
   writeFileSync(packagePath, `${JSON.stringify(Package, null, 2)}\n`);
   writeFileSync(infoPath, `${JSON.stringify(info, null, 2)}\n`);
@@ -242,22 +323,21 @@ try {
     const nextModName = `${name}_${nextVersion}`;
     const modPath = `${exportPath}/${modName}`;
     const nextModPath = `${exportPath}/${nextModName}`;
+    const folderPath = `${exportPath}/${name}`;
     
     if (!existsSync("./dist")) mkdirSync("./dist");
     if (existsSync(`${modPath}.zip`)) unlinkSync(`${modPath}.zip`);
-    if (existsSync(`${modPath}`) && statSync(`${modPath}`).isSymbolicLink()) unlinkSync(`${modPath}`);
-    if (existsSync(`${modPath}`)) rmSync(`${modPath}`, { recursive: true, force: true });
     if (existsSync(`${nextModPath}.zip`)) unlinkSync(`${nextModPath}.zip`);
-    if (existsSync(`${nextModPath}`) && statSync(`${modPath}`).isSymbolicLink()) unlinkSync(`${nextModPath}`);
-    if (existsSync(`${nextModPath}`)) rmSync(`${nextModPath}`, { recursive: true, force: true });
+    if (existsSync(`${folderPath}`) && statSync(`${folderPath}`).isSymbolicLink()) unlinkSync(`${folderPath}`);
+    if (existsSync(`${folderPath}`)) rmSync(`${folderPath}`, { recursive: true, force: true });
     
     if (folder) {
-      console.log(`Copying the ${nextModName} folder...`);
-      cpSync(`./src`, `${nextModPath}`, {recursive: true})
+      console.log(`Copying the ${name} folder...`);
+      cpSync(`./src`, `${folderPath}`, {recursive: true})
     }
     else if (link){
-      console.log(`Linking the ${nextModName} folder...`);
-      symlinkSync(path.resolve(__dirname, `./src`), `${nextModPath}`, 'dir')
+      console.log(`Linking the ${name} folder...`);
+      symlinkSync(path.resolve(__dirname, `./src`), `${folderPath}`, 'dir')
     }
     else{
       console.log(`Archiving ${nextModName}.zip...`);
@@ -283,5 +363,3 @@ try {
     }
   }
 })();
-
-
