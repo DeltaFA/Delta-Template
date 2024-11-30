@@ -1,13 +1,13 @@
 {
-  "name": "your-project-name",
-  "version": "0.0.0",
-  "factorio_version": "1.1",
-  "title": "Delta Template",
-  "author": "Lisekilis",
+  "name": "MOD-NAME-HERE",
+  "version": "0.0.1",
+  "factorio_version": "2.0",
+  "title": "[MOD NAME HERE]",
+  "author": "",
   "contact": "",
   "homepage": "",
   "description": "",
   "dependencies": [
-    "base >= 1.1.107"
+    "base >= 2.0.21"
   ]
 }
