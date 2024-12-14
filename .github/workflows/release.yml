@@ -37,6 +37,6 @@ jobs:
           makeLatest: true
           
       - name: Upload to Mod Portal
-        uses: lisekilis/Upload-to-Factorio-Mod-Portal@pre-v1.0.0
+        uses: lisekilis/Factorio-mod-portal-Upload@v1.0.0
         env:
           FACTORIO_API_TOKEN: ${{ secrets.FACTORIO_TOKEN }}
