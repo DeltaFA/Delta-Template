@@ -5,7 +5,6 @@ import prompts from 'prompts'
 import archiver from 'archiver'
 import path from 'path';
 import { execSync } from 'child_process';
-import opn from 'better-opn';
 
 
 // Flags
