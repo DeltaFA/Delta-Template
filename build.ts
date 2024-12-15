@@ -95,7 +95,7 @@ try {
     process.exit(1);
   }
 
-  if ( !( automated || toFactorio ) ) {
+  if ( !( automated || toFactorio || release ) ) {
     ({ toFactorio } = await prompts(
       {
         type: "select",
@@ -119,7 +119,7 @@ try {
   const exportPath = toFactorio ? path.join(`${process.env.APPDATA}`, '/Factorio/mods') : "./dist";
   console.log(`Export path: ${exportPath}`);
 
-  if ( !( automated || folder || link ) ) {
+  if ( !( automated || folder || link || release ) ) {
     ({ buildMethod } = await prompts(
       {
         type: "select",
