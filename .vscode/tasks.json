@@ -5,7 +5,7 @@
 			"script": "dev",
 			"problemMatcher": [],
 			"label": "build-mod",
-			"detail": "tsx build.ts --folder --to-factorio --skip-version"
+			"detail": "tsx build.ts -q -d factorio -b folder"
 		}
 	]
 }
