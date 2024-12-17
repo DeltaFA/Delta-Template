@@ -94,7 +94,7 @@ export async function getDestination(): Promise<string> {
 				},
 				{
 					title: `./dist`,
-					value: false,
+					value: "./dist",
 				},
 				{
 					title: 'custom',
@@ -149,13 +149,13 @@ export async function getBuildMethod(): Promise<string> {
 
 export async function validateVersion(version: string | null, ): Promise<string> {
 	// Check if version exists
-	if (semver.valid(version)) {
+	if (!semver.valid(version)) {
 		({ version } = await prompts(
 			{
 				type: "text",
 				name: "version",
 				message: version ? "Version" : "Custom Version",
-				initial: version ? version : "1.0.0",
+				initial: version ?? "1.0.0",
 				validate: value => semver.valid(value) ? true : `Version ${value} is not a valid semver.`
 			},
 			{ onCancel },
@@ -306,8 +306,7 @@ export function resolveFactorioPath(): string {
 export function build(params:BuildParams) {
 	const nameRegex = new RegExp(`^${params.name}(_\d\.\d\.\d)?$`)
 	console.log(cliSpinners.dots3,chalk.bold(`Building ${params.name} v${params.version}`))
-	const modName = `${params.name}_${params.version}`;
-	const Path = params.method == "foler" ? path.join(params.dir, modName) : path.join(params.dir, `${modName}.zip`)
+	const Path = params.method == "zip" ? path.join(params.dir, `${params.name}_${params.version}.zip`): path.join(params.dir, params.name)
 	if (params.dir == "./dist" && !statSync("./dist")) mkdirSync("./dist")
 	if (params.dir === resolveFactorioPath()) {
 		readdirSync(params.dir).forEach((file) => {
