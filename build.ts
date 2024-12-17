@@ -19,6 +19,7 @@ interface Args {
 	launch: boolean
 }
 const argv = yargs(hideBin(process.argv))
+	.version(false)
 	.usage('Usage: $0 [options]') // todo: add better usage
 	.option('dir', {
 		alias: 'd',
