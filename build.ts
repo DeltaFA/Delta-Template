@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync } from 'fs';
 import semver from 'semver'
 import chalk from 'chalk'
 import path from 'path';
-import { build, BuildParams, getBuildMethod, getDestination, getPatchNotes, getVersion, launchFactorioPrompt, loadJson, Release, resolveFactorioPath } from './build-functions';
+import { build, BuildParams, getBuildMethod, getDestination, getPatchNotes, getVersion, launchFactorioPrompt, loadJson, Release, resolveFactorioPath, savePatchNotes } from './build-functions';
 
 console.log(chalk.cyan("Initializing build script v2"));
 
@@ -116,15 +116,19 @@ infoJson.version = buildParams.version;
 writeFileSync(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`);
 writeFileSync(infoPath, `${JSON.stringify(infoJson, null, 2)}\n`);
 
+// Update changelog
+savePatchNotes(changelog, patchNotes!.groups!.content)
+
 // Build
 if (!release) {
-try {
+	try {
 		build(buildParams)
 	} catch (error) {
 		console.error(chalk.red(error))
 		process.exit(1)
 	}
 }
+
 
 // Release
 if (release) if (patchNotes && patchNotes.groups) {
