@@ -1,11 +1,11 @@
-import { readFileSync, writeFileSync, mkdirSync, createWriteStream, existsSync, unlinkSync, symlinkSync, rmSync, cpSync, statSync, PathLike, readdirSync, copyFileSync, write } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, createWriteStream, existsSync, symlinkSync, rmSync, cpSync, statSync, readdirSync } from 'fs';
 import { homedir } from 'os';
 import chalk from 'chalk';
 import prompts from 'prompts'
 import { execSync } from 'child_process';
-import semver, { SemVer } from 'semver'
+import semver from 'semver'
 import archiver from 'archiver'
-import path, { ParsedPath } from 'path';
+import path from 'path';
 import cliSpinners from 'cli-spinners';
 
 export interface BuildParams {

@@ -1,17 +1,12 @@
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers'
-
-import { parseArgs } from 'util';
-import { readFileSync, writeFileSync, mkdirSync, createWriteStream, existsSync, unlinkSync, symlinkSync, rmSync, cpSync, statSync, PathLike } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import semver from 'semver'
 import chalk from 'chalk'
-import prompts from 'prompts'
-import archiver from 'archiver'
 import path from 'path';
-import { execSync } from 'child_process';
 import { build, BuildParams, getBuildMethod, getDestination, getPatchNotes, getVersion, launchFactorioPrompt, loadJson, Release, resolveFactorioPath } from './build-functions';
 
-console.log(chalk.green("Initializing!"));
+console.log(chalk.cyan("Initializing build script v2"));
 
 //Args
 interface Args {
@@ -76,7 +71,7 @@ const argv = yargs(hideBin(process.argv))
 	})
 	.option('quiet', {
 		alias: 'q',
-		describe: 'Suppress output',
+		describe: 'Suppress user input',
 		type: 'boolean',
 		default: false,
 	})
