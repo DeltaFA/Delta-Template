@@ -1,3 +1,5 @@
+import { parseArgs } from 'util';
+
 import { readFileSync, writeFileSync, mkdirSync, createWriteStream, existsSync, unlinkSync, symlinkSync, rmSync, cpSync, statSync } from 'fs';
 import semver from 'semver'
 import chalk from 'chalk'
@@ -5,6 +7,14 @@ import prompts from 'prompts'
 import archiver from 'archiver'
 import path from 'path';
 import { execSync } from 'child_process';
+
+//Args
+const {
+  values: {}
+}
+
+
+
 
 
 // Flags
