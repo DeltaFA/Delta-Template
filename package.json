@@ -1,6 +1,7 @@
 {
   "name": "your-project-name",
   "version": "0.0.0",
+	"type": "module",
   "scripts": {
     "build": "tsx build.ts",
     "build-factorio": "tsx build.ts -q -d factorio",
