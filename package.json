@@ -3,10 +3,10 @@
   "version": "0.0.0",
   "scripts": {
     "build": "tsx build.ts",
-    "build-factorio": "tsx build.ts --to-factorio",
-    "create-link": "tsx build.ts --link --to-factorio --skip-version",
-    "dev": "tsx build.ts --folder --to-factorio --skip-version",
-    "dev-launch": "tsx build.ts --folder --to-factorio --skip-version --launch",
+    "build-factorio": "tsx build.ts -q -d factorio",
+    "create-link": "tsx build.ts -q -d factorio -b symlink",
+    "dev": "tsx build.ts -q -d factorio -b folder",
+    "dev-launch": "tsx build.ts -q -d factorio -b folder --launch",
     "release": "tsx build.ts --release"
   },
   "devDependencies": {
