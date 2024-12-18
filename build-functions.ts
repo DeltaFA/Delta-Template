@@ -13,7 +13,7 @@ export interface BuildParams {
 	dir: string,
 	method: string,
 	version: string,
-	name: string,
+	name: string
 }
 // Function for handling cancellation
 function onCancel(): void {
@@ -251,8 +251,8 @@ export async function getPatchNotes(changelog: string, version: string) {
 	}
 	else {
 		console.log(chalk.green(`Patch notes for v${version} found in changelog.txt`))
+		console.log('Current Patch notes:\n', parsedChangelog.groups.content)
 	}
-	console.log('Current Patch notes:\n',parsedChangelog)
 	const { correct } = await prompts(
 		{
 			type: "confirm",
@@ -279,12 +279,32 @@ export async function getPatchNotes(changelog: string, version: string) {
 	return parsedChangelog as RegExpExecArray
 }
 
-export function savePatchNotes(changelog: string, patchNotes: string) {
-	try {
-		writeFileSync('./src/changelog.txt', `${patchNotes.trimEnd()}\n\n${changelog.trimStart()}`.trim())
-	} catch (error) {
-		console.error(chalk.red("Error saving changes to the changelog:", error))
-		process.exit(1);
+export function exportPatchNotes(changelog: string, version: string) {
+	let parsedChangelog = changelogRegex.exec(changelog.replace(/\r\n/g, "\n"));  
+	if (!parsedChangelog || !parsedChangelog.groups || !parsedChangelog.groups.version ) {
+		console.log(`Valid patch notes for v${version} not found in changelog.txt`)
+	}
+	else {
+		console.log(chalk.green(`Patch notes for v${version} found in changelog.txt`))
+		try {
+			writeFileSync('./dist/patch_notes.txt', parsedChangelog.groups.content)
+		} catch (error) {
+			console.error(chalk.red("Error saving changes to the changelog:", error))
+			process.exit(1);
+		}
+	}
+}
+
+export function savePatchNotes(changelog: string, patchNotes: string, version: string) {
+	let parsedChangelog = changelogRegex.exec(changelog.replace(/\r\n/g, "\n"))
+	if (parsedChangelog && parsedChangelog.groups && parsedChangelog.groups.version == version){
+		let newChangelog = `---------------------------------------------------------------------------------------------------\n${patchNotes.trimEnd()}\n\n${changelog.trimStart()}`.trim()
+		try {
+			writeFileSync('./src/changelog.txt', newChangelog)
+		} catch (error) {
+			console.error(chalk.red("Error saving changes to the changelog:", error))
+			process.exit(1);
+		}
 	}
 }
 

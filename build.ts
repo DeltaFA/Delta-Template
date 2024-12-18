@@ -4,7 +4,8 @@ import { readFileSync, writeFileSync } from 'fs';
 import semver from 'semver'
 import chalk from 'chalk'
 import path from 'path';
-import { build, BuildParams, getBuildMethod, getDestination, getPatchNotes, getVersion, launchFactorioPrompt, loadJson, Release, resolveFactorioPath, savePatchNotes } from './build-functions';
+import { build, BuildParams, getBuildMethod, getDestination, getPatchNotes, exportPatchNotes, getVersion, launchFactorioPrompt, loadJson, Release, resolveFactorioPath, savePatchNotes } from './build-functions';
+import { generateKey } from 'crypto';
 
 console.log(chalk.cyan("Initializing build script v2"));
 
@@ -16,7 +17,8 @@ interface Args {
 	skipVersion: boolean,
 	release: boolean,
 	quiet: boolean,
-	launch: boolean
+	launch: boolean,
+	patchNotes: boolean 
 }
 const argv = yargs(hideBin(process.argv))
 	.version(false)
@@ -82,6 +84,12 @@ const argv = yargs(hideBin(process.argv))
 		type: 'boolean',
 		default: false,
 	})
+	.option('patchNotes', {
+		alias: 'p',
+		describe: 'Generate patch_notes.txt from the changelog entry',
+		type: 'boolean',
+		default: false,
+	})
 	.parse() as Args
 
 // Define json  && changelog paths
@@ -117,7 +125,7 @@ writeFileSync(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`);
 writeFileSync(infoPath, `${JSON.stringify(infoJson, null, 2)}\n`);
 
 // Update changelog
-if (patchNotes && patchNotes.groups) savePatchNotes(changelog, patchNotes.groups.content)
+if (patchNotes && patchNotes.groups) savePatchNotes(changelog, patchNotes.groups.content, patchNotes.groups.version)
 
 // Build
 if (!release) {
@@ -134,4 +142,7 @@ if (!release) {
 if (release) if (patchNotes && patchNotes.groups) {
 	Release(buildParams, patchNotes.groups.content)
 } else (console.error(chalk.red("Patch notes could not be loaded")))
+
+if (argv.patchNotes) exportPatchNotes(changelog, buildParams.version)
+
 console.log(chalk.cyan("Goodbye"))
