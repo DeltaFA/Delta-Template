@@ -224,7 +224,7 @@ export async function getVersion(currentVersion: string): Promise<string> {
 }
 
 // Patch notes
-const changelogRegex = /-{99}\n(?<content>Version: (?<version>\d\.\d\.\d)\nDate: (?<date>(?<day>[0-2]?[0-9]|3[0-1])[./-](?<month>1[0-2]|0?[0-9])[./-](?<year>\d+))\n((?!-{99}).+\n?)+)"/gm
+const changelogRegex = /-{99}\n(?<content>Version: (?<version>\d\.\d\.\d)\nDate: (?<date>(?<day>[0-2]?[0-9]|3[0-1])[./-] ?(?<month>1[0-2]|0?[0-9])[./-] ?(?<year>\d+))\n((?!-{99}).+\n?)+)/gm
 
 async function editPatchNotes(version: string, currentPatchNotes?: string): Promise<string> {
 	const date = new Date;
@@ -245,7 +245,7 @@ async function editPatchNotes(version: string, currentPatchNotes?: string): Prom
 }
 export async function getPatchNotes(changelog: string, version: string) {
 	let parsedChangelog = changelogRegex.exec(changelog);  
-	if (!parsedChangelog) {
+	if (!parsedChangelog!.groups!.version) {
 		console.log(`Valid patch notes for v${version} not found in changelog.txt`)
 		parsedChangelog = changelogRegex.exec(await editPatchNotes(version))
 	}
@@ -304,7 +304,7 @@ export function resolveFactorioPath(): string {
 	return process.platform === 'win32' ? path.join(`${process.env.APPDATA}`, '/Factorio/mods') : path.join(`${process.env.HOME}`,`.factorio.mods`)
 }
 
-export function build(params:BuildParams) {
+export async function build(params:BuildParams) {
 	const nameRegex = new RegExp(`^${params.name}(_\\d\\.\\d\\.\\d)?(\\.zip)?$`)
 	const spin = ora(`Building ${params.name} v${params.version}`).start()
 	spin.spinner = cliSpinners.dots3
@@ -328,7 +328,7 @@ export function build(params:BuildParams) {
 			});
 			archive.pipe(output);
 			archive.directory(`./src`, `${params.name}_${params.version}`);
-			archive.finalize();
+			await archive.finalize();
 			break;
 		case "folder":
 			cpSync("./src", Path, {recursive: true});

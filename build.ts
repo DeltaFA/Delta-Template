@@ -100,10 +100,10 @@ const changelog = readFileSync(changelogPath, 'utf-8');
 const buildParams:BuildParams = {
 	dir: argv.release || argv.quiet ? './dist' : argv.dir ?? await getDestination(),
 	method: argv.release || argv.quiet ? `zip` : argv.build ?? await getBuildMethod(),
-	version: argv.version ?? (argv.release || argv.quiet || argv.skipVersion) ? infoJson.version ?? await getVersion('0.0.0') : await getVersion(infoJson.version!),
+	version: argv.version ?? ( argv.quiet || argv.skipVersion) ? infoJson.version ?? await getVersion('0.0.0') : await getVersion(infoJson.version!),
 	name: infoJson.name
 }
-const launch = argv.launch ? true : argv.quiet ? false : argv.dir == './dist' ? false : await launchFactorioPrompt();
+const launch = argv.launch ? true : argv.quiet || argv.release ? false : argv.dir == './dist' ? false : await launchFactorioPrompt();
 const release = argv.release
 const patchNotes = release ? await getPatchNotes(changelog, buildParams.version) : null
 
