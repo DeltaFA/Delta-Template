@@ -327,7 +327,7 @@ export function build(params:BuildParams) {
 				console.log(`${archive.pointer()} total bytes archived.`);
 			});
 			archive.pipe(output);
-			archive.directory(`./src`, Path);
+			archive.directory(`./src`, `${params.name}_${params.version}`);
 			archive.finalize();
 			break;
 		case "folder":
