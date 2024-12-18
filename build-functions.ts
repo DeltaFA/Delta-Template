@@ -244,7 +244,7 @@ async function editPatchNotes(version: string, currentPatchNotes?: string): Prom
 	return (patchNotes as string).trim()
 }
 export async function getPatchNotes(changelog: string, version: string) {
-	let parsedChangelog = changelogRegex.exec(changelog);  
+	let parsedChangelog = changelogRegex.exec(changelog.replace(/\r\n/g, "\n"));  
 	if (!parsedChangelog || !parsedChangelog.groups || !parsedChangelog.groups.version ) {
 		console.log(`Valid patch notes for v${version} not found in changelog.txt`)
 		parsedChangelog = changelogRegex.exec(await editPatchNotes(version))
