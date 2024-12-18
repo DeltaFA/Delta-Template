@@ -13,7 +13,8 @@ export interface BuildParams {
 	dir: string,
 	method: string,
 	version: string,
-	name: string
+	name: string,
+	patchNotes: boolean
 }
 // Function for handling cancellation
 function onCancel(): void {
@@ -224,7 +225,7 @@ export async function getVersion(currentVersion: string): Promise<string> {
 }
 
 // Patch notes
-const changelogRegex = /-{99}\n(?<content>Version: (?<version>\d\.\d\.\d)\nDate: (?<date>(?<day>[0-2]?[0-9]|3[0-1])[./-] ?(?<month>1[0-2]|0?[0-9])[./-] ?(?<year>\d+))\n((?!-{99}).+\n?)+)/gm
+const changelogRegex = /-{99}\n(?<content>Version: (?<version>\d+\.\d+\.\d+)\nDate: (?<date>(?<day>[0-2]?[0-9]|3[0-1])[./-] ?(?<month>1[0-2]|0?[0-9])[./-] ?(?<year>\d+))\n((?!-{99}).+\n?)+)/gm
 
 async function editPatchNotes(version: string, currentPatchNotes?: string): Promise<string> {
 	const date = new Date;
@@ -251,7 +252,7 @@ export async function getPatchNotes(changelog: string, version: string) {
 	}
 	else {
 		console.log(chalk.green(`Patch notes for v${version} found in changelog.txt`))
-		console.log('Current Patch notes:\n', parsedChangelog.groups.content)
+		console.log('Current Patch notes:\n',parsedChangelog.groups.content)
 	}
 	const { correct } = await prompts(
 		{
@@ -285,11 +286,11 @@ export function exportPatchNotes(changelog: string, version: string) {
 		console.log(`Valid patch notes for v${version} not found in changelog.txt`)
 	}
 	else {
-		console.log(chalk.green(`Patch notes for v${version} found in changelog.txt`))
+		console.log(chalk.green(`\nPatch notes for v${version} found in changelog.txt`))
 		try {
 			writeFileSync('./dist/patch_notes.txt', parsedChangelog.groups.content)
 		} catch (error) {
-			console.error(chalk.red("Error saving changes to the changelog:", error))
+			console.error(chalk.red("Error while exporting patch notes:", error))
 			process.exit(1);
 		}
 	}
@@ -324,12 +325,12 @@ export function resolveFactorioPath(): string {
 	return process.platform === 'win32' ? path.join(`${process.env.APPDATA}`, '/Factorio/mods') : path.join(`${process.env.HOME}`,`.factorio.mods`)
 }
 
-export async function build(params:BuildParams) {
+export async function build(params:BuildParams, changelog: string) {
 	const nameRegex = new RegExp(`^${params.name}(_\\d\\.\\d\\.\\d)?(\\.zip)?$`)
 	const spin = ora(`Building ${params.name} v${params.version}`).start()
 	spin.spinner = cliSpinners.dots3
 	const Path = params.method == "zip" ? path.join(params.dir, `${params.name}_${params.version}.zip`): path.join(params.dir, params.name)
-	if (params.dir == "./dist" && !statSync("./dist")) mkdirSync("./dist")
+	if (params.dir == "./dist" && !existsSync("./dist")) mkdirSync("./dist")
 	if (params.dir == resolveFactorioPath()) {
 		readdirSync(params.dir).forEach((file) => {
 		if (nameRegex.exec(path.parse(file).base)) {
@@ -360,12 +361,13 @@ export async function build(params:BuildParams) {
 			console.error(chalk.red(`Invalid build method: ${params.method}`))
 			process.exit(1);
 	}
+	if (params.patchNotes) exportPatchNotes(changelog, params.version)
 	spin.stop()
 	console.log(chalk.green("Build complete!"))
 	return 0
 }
 
-export async function Release(params:BuildParams, patchNotes: string) {
+export async function Release(params:BuildParams, version: string) {
 	console.log(chalk.bold("Starting release..."))
 	runCommand("git add ./src/info.json package.json ./src/changelog.txt");
 	const { message } = await prompts(
@@ -373,7 +375,7 @@ export async function Release(params:BuildParams, patchNotes: string) {
 				type: "text",
 				name: "message",
 				message: "Commit message",
-				initial: `Release\n${patchNotes}`,
+				initial: `Release v${version}`,
 				validate: (value) => {
 					if (!value.trim()) return "Commit message is required";
 					return true;

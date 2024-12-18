@@ -36,8 +36,3 @@ jobs:
           artifacts: "dist/*.zip"
           bodyFile: "dist/patch_notes.txt"
           makeLatest: true
-          
-      - name: Upload to Mod Portal
-        uses: lisekilis/Factorio-mod-portal-Upload@v1.0.0
-        env:
-          FACTORIO_API_TOKEN: ${{ secrets.FACTORIO_TOKEN }}

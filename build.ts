@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync } from 'fs';
 import semver from 'semver'
 import chalk from 'chalk'
 import path from 'path';
-import { build, BuildParams, getBuildMethod, getDestination, getPatchNotes, exportPatchNotes, getVersion, launchFactorioPrompt, loadJson, Release, resolveFactorioPath, savePatchNotes } from './build-functions';
+import { build, BuildParams, getBuildMethod, getDestination, getPatchNotes, getVersion, launchFactorioPrompt, loadJson, Release, resolveFactorioPath, savePatchNotes } from './build-functions';
 import { generateKey } from 'crypto';
 
 console.log(chalk.cyan("Initializing build script v2"));
@@ -109,7 +109,8 @@ const buildParams:BuildParams = {
 	dir: argv.release || argv.quiet ? './dist' : argv.dir ?? await getDestination(),
 	method: argv.release || argv.quiet ? `zip` : argv.build ?? await getBuildMethod(),
 	version: argv.version ?? ( argv.quiet || argv.skipVersion) ? infoJson.version ?? await getVersion('0.0.0') : await getVersion(infoJson.version!),
-	name: infoJson.name
+	name: infoJson.name,
+	patchNotes: argv.patchNotes
 }
 const launch = argv.launch ? true : argv.quiet || argv.release ? false : argv.dir == './dist' ? false : await launchFactorioPrompt();
 const release = argv.release
@@ -130,19 +131,16 @@ if (patchNotes && patchNotes.groups) savePatchNotes(changelog, patchNotes.groups
 // Build
 if (!release) {
 	try {
-		build(buildParams)
+		await build(buildParams, changelog)
 	} catch (error) {
 		console.error(chalk.red(error))
 		process.exit(1)
 	}
 }
 
-
 // Release
 if (release) if (patchNotes && patchNotes.groups) {
-	Release(buildParams, patchNotes.groups.content)
+	Release(buildParams, patchNotes.groups.version)
 } else (console.error(chalk.red("Patch notes could not be loaded")))
-
-if (argv.patchNotes) exportPatchNotes(changelog, buildParams.version)
 
 console.log(chalk.cyan("Goodbye"))
