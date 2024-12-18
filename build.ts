@@ -103,7 +103,7 @@ const buildParams:BuildParams = {
 	version: argv.version ?? (argv.release || argv.quiet || argv.skipVersion) ? infoJson.version ?? await getVersion('0.0.0') : await getVersion(infoJson.version!),
 	name: infoJson.name
 }
-const launch = argv.launch ? true : argv.quiet ? false : await launchFactorioPrompt();
+const launch = argv.launch ? true : argv.quiet ? false : argv.dir == './dist' ? false : await launchFactorioPrompt();
 const release = argv.release
 const patchNotes = release ? await getPatchNotes(changelog, buildParams.version) : null
 
@@ -117,7 +117,7 @@ writeFileSync(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`);
 writeFileSync(infoPath, `${JSON.stringify(infoJson, null, 2)}\n`);
 
 // Update changelog
-savePatchNotes(changelog, patchNotes!.groups!.content)
+if (patchNotes && patchNotes.groups) savePatchNotes(changelog, patchNotes.groups.content)
 
 // Build
 if (!release) {

@@ -7,6 +7,7 @@ import semver from 'semver'
 import archiver from 'archiver'
 import path from 'path';
 import cliSpinners from 'cli-spinners';
+import ora from 'ora';
 
 export interface BuildParams {
 	dir: string,
@@ -304,14 +305,15 @@ export function resolveFactorioPath(): string {
 }
 
 export function build(params:BuildParams) {
-	const nameRegex = new RegExp(`^${params.name}(_\d\.\d\.\d)?$`)
-	console.log(cliSpinners.dots3,chalk.bold(`Building ${params.name} v${params.version}`))
+	const nameRegex = new RegExp(`^${params.name}(_\\d\\.\\d\\.\\d)?(\\.zip)?$`)
+	const spin = ora(`Building ${params.name} v${params.version}`).start()
+	spin.spinner = cliSpinners.dots3
 	const Path = params.method == "zip" ? path.join(params.dir, `${params.name}_${params.version}.zip`): path.join(params.dir, params.name)
 	if (params.dir == "./dist" && !statSync("./dist")) mkdirSync("./dist")
-	if (params.dir === resolveFactorioPath()) {
+	if (params.dir == resolveFactorioPath()) {
 		readdirSync(params.dir).forEach((file) => {
 		if (nameRegex.exec(path.parse(file).base)) {
-			rmSync(file, {recursive: true});
+			rmSync(path.resolve(params.dir, file), {recursive: true});
 		}});
 	}
 	switch (params.method) {
@@ -338,6 +340,7 @@ export function build(params:BuildParams) {
 			console.error(chalk.red(`Invalid build method: ${params.method}`))
 			process.exit(1);
 	}
+	spin.stop()
 	console.log(chalk.green("Build complete!"))
 	return 0
 }

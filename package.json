@@ -24,6 +24,7 @@
     "chalk": "^5.3.0",
     "cli-spinners": "^3.2.0",
     "factoriomod-debug": "^1.1.42",
+    "ora": "^8.1.1",
     "prompts": "^2.4.2",
     "semver": "^7.6.0",
     "tsx": "^4.19.2",
