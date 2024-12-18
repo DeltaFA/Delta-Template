@@ -28,12 +28,13 @@ jobs:
         run: pnpm i
       
       - name: Build
-        run: pnpm build -q
+        run: pnpm build -q -p
       
       - name: Create Release
         uses: ncipollo/release-action@v1.14.0
         with:
-          artifacts: "dist/*"
+          artifacts: "dist/*.zip"
+          bodyFile: "dist/patch_notes.txt"
           makeLatest: true
           
       - name: Upload to Mod Portal
